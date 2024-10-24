@@ -9,6 +9,11 @@ for (let i = 0; i < collisions.length; i+=70) {
     collisionsMap.push(collisions.slice(i, i+70));
 }
 
+const battleZonesMap = []
+for (let i = 0; i < battleZonesData.length; i+=70) {
+    battleZonesMap.push(battleZonesData.slice(i, i+70));
+}
+
 const boundaries = [];
 const offset = {
     x: -740,
@@ -27,23 +32,51 @@ collisionsMap.forEach((row, i) => {
     })
 })
 
+const battleZones = [];
+battleZonesMap.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+        if (symbol === 1025)
+        battleZones.push(new Boundary({position: {
+            x: j * Boundary.width + offset.x,
+            y: i * Boundary.height + offset.y
+            }
+        })
+        )
+    })
+})
+
 const image = new Image();
 image.src = 'img/Pellet Town.png';
 
 const foregroundImage = new Image();
 foregroundImage.src = 'img/foregroundObjects.png';
 
-const playerImage = new Image();
-playerImage.src = 'img/playerDown.png';
+const playerDown = new Image();
+playerDown.src = 'img/playerDown.png';
+
+const playerUp = new Image();
+playerUp.src = 'img/playerUp.png';
+
+const playerLeft = new Image();
+playerLeft.src = 'img/playerLeft.png';
+
+const playerRight = new Image();
+playerRight.src = 'img/playerRight.png';
 
 const player = new Sprite({
     position: {
         x: canvas.width / 2 - 192 / 8,
         y: canvas.height / 2 - 68 / 2
     },
-    image: playerImage,
+    image: playerDown,
     frames: {
         max: 4
+    },
+    sprites: {
+        up: playerUp,
+        down: playerDown,
+        left: playerLeft,
+        right: playerRight
     }
 });
 
@@ -70,7 +103,7 @@ const keys = {
     d: false
 }
 
-const movables = [background, ...boundaries, foreground];
+const movables = [background, ...boundaries, foreground, ...battleZones];
 
 function rectangularCollision({rectangle1, rectangle2}) {
     return (
@@ -86,11 +119,31 @@ function animate() {
   boundaries.forEach((boundary) => {
         boundary.draw();
   })
+    battleZones.forEach((battleZone) => {
+        battleZone.draw();
+    })
     player.draw();
     foreground.draw();
+
+    if (keys.w || keys.a || keys.s || keys.d) {
+        for (let i = 0; i < battleZones.length; i++) {
+            const battleZone = battleZones[i];
+            if (
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: battleZone
+                })
+            ) {
+                break;
+            }
+        }
+    }
     
     let moving = true;
+    player.moving = false;
     if (keys.w && lastKey === 'w') {
+        player.moving = true;
+        player.image = player.sprites.up;
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i];
             if (
@@ -105,7 +158,6 @@ function animate() {
                     }
                 })
             ) {
-                console.log('collision');
                 moving = false;
                 break;
             }
@@ -117,6 +169,8 @@ function animate() {
             })
         }
     } else if (keys.s && lastKey === 's') {
+        player.moving = true;
+        player.image = player.sprites.down;
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i];
             if (
@@ -131,7 +185,6 @@ function animate() {
                     }
                 })
             ) {
-                console.log('collision');
                 moving = false;
                 break;
             }
@@ -143,6 +196,8 @@ function animate() {
             })
         }
     } else if (keys.a && lastKey === 'a') {
+        player.moving = true;
+        player.image = player.sprites.left;
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i];
             if (
@@ -157,7 +212,6 @@ function animate() {
                     }
                 })
             ) {
-                console.log('collision');
                 moving = false;
                 break;
             }
@@ -169,6 +223,8 @@ function animate() {
             })
         }
     } else if (keys.d && lastKey === 'd') {
+        player.moving = true;
+        player.image = player.sprites.right;
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i];
             if (
@@ -183,7 +239,6 @@ function animate() {
                     }
                 })
             ) {
-                console.log('collision');
                 moving = false;
                 break;
             }
@@ -206,22 +261,18 @@ window.addEventListener('keydown', (e) => {
         case 'w':
             keys.w = true;
             lastKey = 'w';
-            playerImage.src = 'img/playerUp.png';
             break;
         case 's':
             keys.s = true;
             lastKey = 's';
-            playerImage.src = 'img/playerDown.png';
             break;
         case 'a':
             keys.a = true;
             lastKey = 'a';
-            playerImage.src = 'img/playerLeft.png';
             break;
         case 'd':
             keys.d = true;
             lastKey = 'd';
-            playerImage.src = 'img/playerRight.png';
             break;
     }
 });
@@ -230,19 +281,15 @@ window.addEventListener('keyup', (e) => {
     switch (e.key) {
         case 'w':
             keys.w = false;
-            playerImage.src = 'img/playerUp.png';
             break;
         case 's':
             keys.s = false;
-            playerImage.src = 'img/playerDown.png';
             break;
         case 'a':
             keys.a = false;
-            playerImage.src = 'img/playerLeft.png';
             break;
         case 'd':
             keys.d = false;
-            playerImage.src = 'img/playerRight.png';
             break;
     }
 });
