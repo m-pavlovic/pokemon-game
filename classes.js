@@ -1,5 +1,6 @@
 class Sprite {
-    constructor({position, image, frames = {max: 1, hold: 10}, sprites, animate = false})
+    constructor({position, image, frames = {max: 1, hold: 10}, 
+        sprites, animate = false, isEnemy = false, rotation = 0})
     {
         this.position = position;
         this.image = image;
@@ -11,8 +12,17 @@ class Sprite {
         }
         this.animate = animate;
         this.sprites = sprites;
+        this.opacity = 1;
+        this.health = 100;
+        this.isEnemy = isEnemy;
+        this.rotation = rotation
     }
     draw() {
+        ctx.save();
+        ctx.translate(this.position.x + this.width/2, this.position.y + this.height/2);
+        ctx.rotate(this.rotation);
+        ctx.translate(-this.position.x - this.width/2, -this.position.y - this.height/2);
+        ctx.globalAlpha = this.opacity;
         ctx.drawImage(
             this.image,
             this.frames.value * this.image.width / this.frames.max,
@@ -23,7 +33,9 @@ class Sprite {
             this.position.y,
             this.image.width/ this.frames.max,
             this.image.height
-            );
+            )
+
+        ctx.restore();
         
         if (!this.animate) return;
 
@@ -35,6 +47,107 @@ class Sprite {
             if (this.frames.value < this.frames.max - 1) this.frames.value++;
             else this.frames.value = 0;  
         }
+    }
+
+    attack({attack, target, renderedSprites}) {
+
+        this.health -= attack.damage;
+
+        let healthBar = '#enemyHP';
+        if (this.isEnemy) healthBar = '#playerHP';
+
+        let rotation = 1;
+        if (this.isEnemy) rotation = -2.2;
+
+        switch(attack.name) {
+            case 'Tackle':
+                const timeLine = gsap.timeline();
+
+                let movementDistance = 20;
+                if (this.isEnemy) movementDistance = -20;
+
+                timeLine.to(this.position, {
+                    x: this.position.x - movementDistance,
+                }).to(this.position, {
+                    x: this.position.x + movementDistance * 2,
+                    duration: 0.1,
+                    onComplete: () => {
+
+                        gsap.to(healthBar, {
+                            width: this.health + '%',
+                        })
+
+                        gsap.to(target.position, {
+                            x: target.position.x + 10,
+                            yoyo: true,
+                            repeat: 5,
+                            duration: 0.08
+                        })
+
+                        gsap.to(target, {
+                            opacity: 0.5,
+                            yoyo: true,
+                            repeat: 5,
+                            duration: 0.08
+                        })
+
+                    }
+                }).to(this.position, {
+                    x: this.position.x
+                });
+                
+                break;
+
+            case 'FireBall':
+                const fireBallImage = new Image();
+                fireBallImage.src = 'img/fireball.png';
+                const fireBall = new Sprite({
+                    position: {x: this.position.x, y: this.position.y},
+                    image: fireBallImage,
+                    frames: {max: 4, hold: 10},
+                    animate: true,
+                    rotation
+                });
+
+                renderedSprites.splice(1, 0, fireBall);
+
+
+                gsap.to(fireBall.position, {
+                    x: target.position.x,
+                    y: target.position.y,
+                    duration: 1,
+                    onComplete: () => {
+                        fireBall.animate = false;
+                        fireBall.opacity = 0;
+
+                        gsap.to(healthBar, {
+                            width: this.health + '%',
+                        })
+
+                        gsap.to(target.position, {
+                            x: target.position.x + 10,
+                            yoyo: true,
+                            repeat: 5,
+                            duration: 0.08
+                        })
+
+                        gsap.to(target, {
+                            opacity: 0.5,
+                            yoyo: true,
+                            repeat: 5,
+                            duration: 0.08
+                        })
+
+                        renderedSprites.splice(1, 1);
+                    }
+                });
+
+            break;
+
+
+
+        }
+        
     }
 }
 

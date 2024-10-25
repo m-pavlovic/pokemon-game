@@ -319,7 +319,8 @@ const draggle = new Sprite({
         max: 4,
         hold: 20
     },
-    animate: true
+    animate: true,
+    isEnemy: true
 })
 
 const embyImage = new Image();
@@ -338,15 +339,31 @@ const emby = new Sprite({
     animate: true
 })
 
+
+const renderedSprites = [draggle, emby];
+
 function animateBattle() {
     window.requestAnimationFrame(animateBattle);
     battleBackground.draw();
-    draggle.draw();
-    emby.draw();
+
+    renderedSprites.forEach((sprite) => {
+        sprite.draw();
+    })
 
 }
 
 animateBattle(); //remove later
+
+document.querySelectorAll('button').forEach((button) => {
+    button.addEventListener('click', (e) => {
+        const selectedAttack = attacks[e.currentTarget.innerHTML];
+        emby.attack({ 
+            attack: selectedAttack,
+            target: draggle,
+            renderedSprites
+    })
+    })
+})
 
 let lastKey = '';
 window.addEventListener('keydown', (e) => {
