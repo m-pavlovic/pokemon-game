@@ -113,8 +113,13 @@ function rectangularCollision({rectangle1, rectangle2}) {
         rectangle1.position.y <= rectangle2.position.y + rectangle2.height
     )
 }
+
+const battle = {
+    intiated: false
+}
+
 function animate() {
-  window.requestAnimationFrame(animate);
+  const animationId = window.requestAnimationFrame(animate);
   background.draw();
   boundaries.forEach((boundary) => {
         boundary.draw();
@@ -125,22 +130,56 @@ function animate() {
     player.draw();
     foreground.draw();
 
+    let moving = true;
+    player.moving = false;
+    if (battle.intiated) return
+
+
     if (keys.w || keys.a || keys.s || keys.d) {
         for (let i = 0; i < battleZones.length; i++) {
             const battleZone = battleZones[i];
+            const overlappingArea = (Math.min(player.position.x + player.width, 
+                battleZone.position.x + battleZone.width) - Math.max(player.position.x, 
+                battleZone.position.x))  * (Math.min(player.position.y + player.height, 
+                    battleZone.position.y + battleZone.height) - Math.max(player.position.y, 
+                        battleZone.position.y));
             if (
                 rectangularCollision({
                     rectangle1: player,
                     rectangle2: battleZone
-                })
+                }) &&
+                overlappingArea > (player.width * player.height) / 2
+                && Math.random() < 0.01
             ) {
+
+                window.cancelAnimationFrame(animationId);
+
+                battle.intiated = true;
+                gsap.to('#overlappingDiv', {
+                    opacity: 1,
+                    repeat: 5,
+                    yoyo: true, 
+                    duration: 0.3,
+                    onComplete() {
+                        gsap.to('#overlappingDiv', {
+                            opacity: 1,
+                            duration: 0.3,
+                            onComplete() {
+                                animateBattle();
+                                gsap.to('#overlappingDiv', {
+                                    opacity: 0,
+                                    duration: 0.3
+                                })
+                            }
+                        })
+                    }
+                })
                 break;
             }
         }
     }
     
-    let moving = true;
-    player.moving = false;
+
     if (keys.w && lastKey === 'w') {
         player.moving = true;
         player.image = player.sprites.up;
@@ -254,6 +293,23 @@ function animate() {
 }
 
 animate();
+
+const battleBackgroundImage = new Image();
+battleBackgroundImage.src = 'img/battleBackground.png';
+
+const battleBackground = new Sprite({
+    position: {
+        x: 0,
+        y: 0
+    },
+    image: battleBackgroundImage
+});
+
+function animateBattle() {
+    window.requestAnimationFrame(animateBattle);
+    battleBackground.draw();
+
+}
 
 let lastKey = '';
 window.addEventListener('keydown', (e) => {
