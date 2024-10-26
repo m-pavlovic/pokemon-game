@@ -1,22 +1,20 @@
 class Sprite {
     constructor({position, image, frames = {max: 1, hold: 10}, 
-        sprites, animate = false, isEnemy = false, rotation = 0, name})
+        sprites, animate = false, rotation = 0})
     {
         this.position = position;
-        this.image = image;
+        this.image = new Image();
         this.frames = {...frames, value: 0, elapsed: 0}
 
         this.image.onload = () => {
             this.width = this.image.width / this.frames.max;
             this.height = this.image.height;
         }
+        this.image.src = image.src;
         this.animate = animate;
         this.sprites = sprites;
         this.opacity = 1;
-        this.health = 100;
-        this.isEnemy = isEnemy;
         this.rotation = rotation
-        this.name = name;
     }
     draw() {
         ctx.save();
@@ -50,12 +48,43 @@ class Sprite {
         }
     }
 
+}
+
+class Monster extends Sprite {
+    constructor({
+        isEnemy = false,
+        name,
+        attacks,
+    }) {
+        super(...arguments);
+        this.health = 100;
+        this.isEnemy = isEnemy;
+        this.name = name;
+        this.attacks = attacks;
+    }
+
+    faint() {
+        if (this.isEnemy) {
+            document.querySelector('#dialogueBox').innerHTML = this.name + ' fainted!';
+            gsap.to(this.position, {
+                y: this.position.y + 20,
+
+            })
+            gsap.to(this, {
+                opacity: 0,
+            })
+        }
+
+        this.opacity = 0.5;
+        this.animate = false;
+    }
+
     attack({attack, target, renderedSprites}) {
         
         document.querySelector('#dialogueBox').style.display = 'block';
         document.querySelector('#dialogueBox').innerHTML = this.name + ' used ' + attack.name + '!';
 
-        this.health -= attack.damage;
+        target.health -= attack.damage;
 
         let healthBar = '#enemyHP';
         if (this.isEnemy) healthBar = '#playerHP';
@@ -63,8 +92,10 @@ class Sprite {
         let rotation = 1;
         if (this.isEnemy) rotation = -2.2;
 
+
         switch(attack.name) {
             case 'Tackle':
+                
                 const timeLine = gsap.timeline();
 
                 let movementDistance = 20;
@@ -78,7 +109,7 @@ class Sprite {
                     onComplete: () => {
 
                         gsap.to(healthBar, {
-                            width: this.health + '%',
+                            width: target.health + '%',
                         })
 
                         gsap.to(target.position, {
@@ -125,7 +156,7 @@ class Sprite {
                         fireBall.opacity = 0;
 
                         gsap.to(healthBar, {
-                            width: this.health + '%',
+                            width: target.health + '%',
                         })
 
                         gsap.to(target.position, {
@@ -144,6 +175,33 @@ class Sprite {
 
                         renderedSprites.splice(1, 1);
                     }
+                });
+
+            break;
+
+            case 'Dance':
+                const attacker = this;
+
+                const danceTimeline = gsap.timeline();
+
+                danceTimeline.to(attacker.position, {
+                    x: attacker.position.x + 40,
+                    y: attacker.position.y + 20,
+                    rotation: 0.5,
+                    yoyo: true,
+                    repeat: 5,
+                    duration: 0.08
+                }).to(attacker.position, {
+                    x: attacker.position.x - 40,
+                    y: attacker.position.y - 20,
+                    rotation: -0.5,
+                    yoyo: true,
+                    repeat: 5,
+                    duration: 0.08
+                }).to(attacker.position, {
+                    x: attacker.position.x,
+                    y: attacker.position.y,
+                    duration: 0.08
                 });
 
             break;
