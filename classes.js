@@ -73,6 +73,8 @@ class Monster extends Sprite {
             gsap.to(this, {
                 opacity: 0,
             })
+
+            audio.Victory.play();
         }
 
         this.opacity = 0.5;
@@ -108,6 +110,8 @@ class Monster extends Sprite {
                     duration: 0.1,
                     onComplete: () => {
 
+                        audio.TackleHit.play();
+
                         gsap.to(healthBar, {
                             width: target.health + '%',
                         })
@@ -134,6 +138,7 @@ class Monster extends Sprite {
                 break;
 
             case 'FireBall':
+                audio.InitFireball.play();
                 const fireBallImage = new Image();
                 fireBallImage.src = 'img/fireball.png';
                 const fireBall = new Sprite({
@@ -152,6 +157,7 @@ class Monster extends Sprite {
                     y: target.position.y,
                     duration: 1,
                     onComplete: () => {
+                        audio.FireballHit.play();
                         fireBall.animate = false;
                         fireBall.opacity = 0;
 

@@ -155,6 +155,11 @@ function animate() {
 
                 window.cancelAnimationFrame(animationId);
 
+
+
+                audio.Map.stop();
+                audio.InitBattle.play();
+                audio.Battle.play();
                 battle.intiated = true;
                 gsap.to('#overlappingDiv', {
                     opacity: 1,
@@ -294,8 +299,6 @@ function animate() {
 
 }
 
-//animate();
-
 let lastKey = '';
 window.addEventListener('keydown', (e) => {
     switch (e.key) {
@@ -335,3 +338,11 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
+
+let clicked = false;
+addEventListener('click', () => {
+    if (!clicked) {
+        audio.Map.play();
+        clicked = true;
+    } 
+})
