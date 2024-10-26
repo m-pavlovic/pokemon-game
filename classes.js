@@ -74,6 +74,7 @@ class Monster extends Sprite {
                 opacity: 0,
             })
 
+            audio.Battle.stop();
             audio.Victory.play();
         }
 
@@ -138,7 +139,7 @@ class Monster extends Sprite {
                 break;
 
             case 'FireBall':
-                audio.InitFireball.play();
+                audio.InitFireBall.play();
                 const fireBallImage = new Image();
                 fireBallImage.src = 'img/fireball.png';
                 const fireBall = new Sprite({
@@ -157,7 +158,7 @@ class Monster extends Sprite {
                     y: target.position.y,
                     duration: 1,
                     onComplete: () => {
-                        audio.FireballHit.play();
+                        audio.FireBallHit.play();
                         fireBall.animate = false;
                         fireBall.opacity = 0;
 
