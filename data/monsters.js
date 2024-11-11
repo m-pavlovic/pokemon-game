@@ -12,7 +12,7 @@ const monsters = {
             hold: 20
         },
         animate: true,
-        name: 'Mika',
+        name: 'Tangerine',
         attacks: [attacks.Tackle, attacks.FireBall]
     },
 
@@ -30,7 +30,7 @@ const monsters = {
         },
         animate: true,
         isEnemy: true,
-        name: 'Kylon',
+        name: 'Bin',
         attacks: [attacks.Tackle, attacks.Dance]
     }
 }
